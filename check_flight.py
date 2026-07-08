@@ -105,16 +105,17 @@ def eta_minutes(lat, lon, speed_ms, dest_icao, airports):
     return (dist_km / speed_kmh) * 60  # minutes
 
 
-def send_email(gmail_user, gmail_app_password, dad_email, message_body, subject):
+def send_email(gmail_user, gmail_app_password, recipients_raw, message_body, subject):
+    recipients = [r.strip() for r in recipients_raw.split(",") if r.strip()]
     msg = MIMEText(message_body)
     msg["Subject"] = subject
     msg["From"] = gmail_user
-    msg["To"] = dad_email
+    msg["To"] = ", ".join(recipients)
     with smtplib.SMTP("smtp.gmail.com", 587) as server:
         server.starttls()
         server.login(gmail_user, gmail_app_password)
-        server.send_message(msg)
-    print(f"Email sent to {dad_email}")
+        server.sendmail(gmail_user, recipients, msg.as_string())
+    print(f"Email sent to: {', '.join(recipients)}")
 
 
 def set_gha_output(key, value):
