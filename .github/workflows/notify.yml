@@ -13,6 +13,9 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      variables: write
 
     outputs:
       should_notify: ${{ steps.check.outputs.should_notify }}

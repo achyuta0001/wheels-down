@@ -80,7 +80,7 @@ def find_aircraft(flight_number: str):
     url = OPENSKY_URL.format(callsign=icao_callsign)
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "flight-notifier/1.0"})
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read())
     except Exception as e:
         print(f"OpenSky request failed: {e}")
