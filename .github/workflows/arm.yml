@@ -1,0 +1,35 @@
+name: Arm Flight Notifier
+
+on:
+  workflow_dispatch:
+    inputs:
+      route:
+        description: 'Which flight are you taking?'
+        required: true
+        type: choice
+        options:
+          - 'BLR → Pune (6E107)'
+          - 'Pune → BLR (6E408)'
+
+jobs:
+  arm:
+    runs-on: ubuntu-latest
+    permissions:
+      variables: write
+
+    steps:
+      - name: Set flight variables
+        run: |
+          if [ "${{ inputs.route }}" = "BLR → Pune (6E107)" ]; then
+            FLIGHT="6E107"
+            AIRPORT="VAPO"
+          else
+            FLIGHT="6E408"
+            AIRPORT="VOBL"
+          fi
+          gh variable set FLIGHT_NUMBER   --body "$FLIGHT"  --repo "${{ github.repository }}"
+          gh variable set ARRIVAL_AIRPORT --body "$AIRPORT" --repo "${{ github.repository }}"
+          gh variable set NOTIFIED        --body "false"    --repo "${{ github.repository }}"
+          echo "✓ Armed: $FLIGHT arriving at $AIRPORT. Dad gets notified ~35 min before landing."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
