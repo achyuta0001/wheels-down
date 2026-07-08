@@ -1,0 +1,38 @@
+name: Flight Arrival Notifier
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # every 15 minutes
+  workflow_dispatch:           # manual trigger for testing
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    outputs:
+      should_notify: ${{ steps.check.outputs.should_notify }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check flight status and notify
+        id: check
+        env:
+          FLIGHT_NUMBER:      ${{ vars.FLIGHT_NUMBER }}
+          ARRIVAL_AIRPORT:    ${{ vars.ARRIVAL_AIRPORT }}
+          NOTIFIED:           ${{ vars.NOTIFIED }}
+          LEAD_TIME_MINUTES:  ${{ vars.LEAD_TIME_MINUTES || '65' }}
+          DAD_EMAIL:          ${{ secrets.DAD_EMAIL }}
+          GMAIL_USER:         ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python check_flight.py
+
+      - name: Mark as notified (prevent double-send)
+        if: steps.check.outputs.should_notify == 'true'
+        run: gh variable set NOTIFIED --body "true"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
