@@ -3,7 +3,12 @@ name: Flight Arrival Notifier
 on:
   schedule:
     - cron: '*/15 * * * *'   # every 15 minutes
-  workflow_dispatch:           # manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Send a test email immediately (skip flight check)'
+        type: boolean
+        default: false
 
 jobs:
   check:
@@ -29,7 +34,7 @@ jobs:
           DAD_EMAIL:          ${{ secrets.DAD_EMAIL }}
           GMAIL_USER:         ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-        run: python check_flight.py
+        run: python check_flight.py ${{ inputs.test_mode == true && '--test' || '' }}
 
       - name: Mark as notified (prevent double-send)
         if: steps.check.outputs.should_notify == 'true'
